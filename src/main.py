@@ -3,6 +3,7 @@ import socketserver
 import json
 import numpy as np
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
+import os
 
 PORT = 8000
 
@@ -12,8 +13,8 @@ PING_REQUEST = {
 }
     
 # Model and Tokenizers
-PRED_MODEL_NAME = "/ArxivClassificationModel/"
-TOKENIZER_NAME = "/ArxivClassificationTokenizer/"
+PRED_MODEL_NAME = os.getcwd() + "/ArxivClassificationModel/"
+TOKENIZER_NAME = os.getcwd() + "/ArxivClassificationTokenizer/"
 NUM_LABELS = 11
 model = None
 tokenizer = None
