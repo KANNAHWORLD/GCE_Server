@@ -12,8 +12,8 @@ PING_REQUEST = {
 }
     
 # Model and Tokenizers
-PRED_MODEL_NAME = "bansalsi/467ArxivClassification"
-TOKENIZER_NAME = "bert-base-uncased"
+PRED_MODEL_NAME = "/ArxivClassificationModel/"
+TOKENIZER_NAME = "/ArxivClassificationTokenizer/"
 NUM_LABELS = 11
 
 # Label and Description Informations
