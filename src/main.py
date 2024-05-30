@@ -47,7 +47,7 @@ class myHandler(http.server.SimpleHTTPRequestHandler):
         model = AutoModelForSequenceClassification.from_pretrained(PRED_MODEL_NAME, num_labels=NUM_LABELS, force_download=False)
         model.eval()
         tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_NAME, force_download=False)
-
+        print("Tokenizer and model downloaded from the hugging face hub")
         # Toeknize the data
         tokenized_pt_tensor = tokenizer(data, max_length=512, truncation=True, return_tensors="pt")
         
@@ -60,6 +60,8 @@ class myHandler(http.server.SimpleHTTPRequestHandler):
         # Defining the data to be returned
         data = {"message": LABEL_DESCRIPTIONS[prediction]}
 
+        print("Classification completed, responding back")
+
         self.make_good_response(data)
 
 
@@ -69,11 +71,17 @@ class myHandler(http.server.SimpleHTTPRequestHandler):
         post_data = self.rfile.read(content_length)
         data = json.loads(post_data.decode('utf-8'))
         
+        print("Recieved a request")
+
         if 'resource' in data:
             if data['resource'] == "arxivClassification" and 'data' in data:
+        
+                print("Requested for arxiv classification")
+        
                 self.handle_arxiv_classification(data['data'])
                 return
 
+        print("Recieved a request but not for any endpoint, returning PING_REQUEST")
         self.make_good_response(PING_REQUEST)
 
 
