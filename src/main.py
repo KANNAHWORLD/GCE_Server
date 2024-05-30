@@ -52,6 +52,9 @@ class myHandler(http.server.SimpleHTTPRequestHandler):
         # tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_NAME, force_download=False)
         # print("Tokenizer and model downloaded from the hugging face hub")
         # Toeknize the data
+
+        global tokenizer
+        global model
         tokenized_pt_tensor = tokenizer(data, max_length=512, truncation=True, return_tensors="pt")
         
         # get the output from the model 
@@ -89,6 +92,9 @@ class myHandler(http.server.SimpleHTTPRequestHandler):
 
 
 def start_up():
+    global model
+    global tokenizer
+
     model = AutoModelForSequenceClassification.from_pretrained(PRED_MODEL_NAME, num_labels=NUM_LABELS, force_download=False)
     model.eval()
     tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_NAME, force_download=False)
