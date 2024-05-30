@@ -1,6 +1,6 @@
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
-MODEL_NAME = "bansalsi/467ArxivClassification
+MODEL_NAME = "bansalsi/467ArxivClassification"
 TOKENIZER_NAME = "bert-base-uncased"
 
 if __name__ == "__main__":
