@@ -15,6 +15,8 @@ PING_REQUEST = {
 PRED_MODEL_NAME = "/ArxivClassificationModel/"
 TOKENIZER_NAME = "/ArxivClassificationTokenizer/"
 NUM_LABELS = 11
+model = None
+tokenizer = None
 
 # Label and Description Informations
 LABELS = ['math.AC', 'cs.CV', 'cs.AI', 'cs.SY', 'math.GR', 'cs.DS', 'cs.CE', 'cs.PL', 'cs.IT', 'cs.NE', 'math.ST']
@@ -44,10 +46,10 @@ class myHandler(http.server.SimpleHTTPRequestHandler):
     def handle_arxiv_classification(self, data) -> str:
 
         # Loading the model and tokenizer
-        model = AutoModelForSequenceClassification.from_pretrained(PRED_MODEL_NAME, num_labels=NUM_LABELS, force_download=False)
-        model.eval()
-        tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_NAME, force_download=False)
-        print("Tokenizer and model downloaded from the hugging face hub")
+        # model = AutoModelForSequenceClassification.from_pretrained(PRED_MODEL_NAME, num_labels=NUM_LABELS, force_download=False)
+        # model.eval()
+        # tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_NAME, force_download=False)
+        # print("Tokenizer and model downloaded from the hugging face hub")
         # Toeknize the data
         tokenized_pt_tensor = tokenizer(data, max_length=512, truncation=True, return_tensors="pt")
         
@@ -85,11 +87,17 @@ class myHandler(http.server.SimpleHTTPRequestHandler):
         self.make_good_response(PING_REQUEST)
 
 
+def start_up():
+    model = AutoModelForSequenceClassification.from_pretrained(PRED_MODEL_NAME, num_labels=NUM_LABELS, force_download=False)
+    model.eval()
+    tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_NAME, force_download=False)
+
 
 if __name__ == "__main__":
 
     handler = http.server.SimpleHTTPRequestHandler
     httpd = socketserver.TCPServer(("", PORT), myHandler)
+    start_up()
 
     print("serving at port", PORT)
     httpd.serve_forever()
