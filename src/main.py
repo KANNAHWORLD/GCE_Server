@@ -46,13 +46,6 @@ class myHandler(http.server.SimpleHTTPRequestHandler):
 
     def handle_arxiv_classification(self, data) -> str:
 
-        # Loading the model and tokenizer
-        # model = AutoModelForSequenceClassification.from_pretrained(PRED_MODEL_NAME, num_labels=NUM_LABELS, force_download=False)
-        # model.eval()
-        # tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_NAME, force_download=False)
-        # print("Tokenizer and model downloaded from the hugging face hub")
-        # Toeknize the data
-
         global tokenizer
         global model
         tokenized_pt_tensor = tokenizer(data, max_length=512, truncation=True, return_tensors="pt")
@@ -89,7 +82,9 @@ class myHandler(http.server.SimpleHTTPRequestHandler):
 
         print("Recieved a request but not for any endpoint, returning PING_REQUEST")
         self.make_good_response(PING_REQUEST)
-
+        
+    def do_GET(self):
+        self.make_good_response(PING_REQUEST)
 
 def start_up():
     global model
