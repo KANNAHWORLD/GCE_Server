@@ -87,6 +87,13 @@ class myHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         self.make_good_response(PING_REQUEST)
 
+class CustomHTTPServer(socketserver.TCPServer):
+    def __init__(self, server_address, RequestHandlerClass):
+        super().__init__(server_address, RequestHandlerClass)
+        # Set a custom socket timeout
+        self.socket.settimeout(60)  # Set timeout to 60 seconds
+
+
 def start_up():
     global model
     global tokenizer
@@ -98,9 +105,12 @@ def start_up():
 
 if __name__ == "__main__":
 
-    handler = http.server.SimpleHTTPRequestHandler
-    httpd = socketserver.TCPServer(("", PORT), myHandler)
+    # handler = http.server.SimpleHTTPRequestHandler
+    # httpd = socketserver.TCPServer(("", PORT), myHandler)
     start_up()
+    server = CustomHTTPServer(('localhost', 8080), myHandler)
+    print("Serving on port 8080...")
+    server.serve_forever()
 
-    print("serving at port", PORT)
-    httpd.serve_forever()
+    # print("serving at port", PORT)
+    # httpd.serve_forever()
