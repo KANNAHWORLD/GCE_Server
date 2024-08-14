@@ -86,8 +86,8 @@ PG_LOGIN = {
 RUN_DATABASE_INTIALIZATION = False
 CREATE_NEW_TABLES = False or RUN_DATABASE_INTIALIZATION
 
-EMAIL = 'bansalsi@usc.edu'
-PASSWORD = 'Kannahworld2003!P'
+EMAIL = ''
+PASSWORD = ''
 
 def piazzaLogIn() -> Piazza:
     piazza_obj = Piazza()
