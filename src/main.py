@@ -11,6 +11,10 @@ PORT = 8000
 PING_REQUEST = {
         "message": "Hello from Lambda!"
 }
+
+BAD_REQUEST = {
+    "message": "Bad Request"
+}
     
 # Model and Tokenizers
 PRED_MODEL_NAME = os.getcwd() + "/ArxivClassificationModel/"
@@ -65,24 +69,21 @@ class myHandler(http.server.SimpleHTTPRequestHandler):
 
 
     def do_POST(self):
+        try:
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            data = json.loads(post_data.decode('utf-8'))
+            print("Recieved a request")
+            if 'resource' in data:
+                if data['resource'] == "arxivClassification" and 'data' in data:
+                    print("Requested for arxiv classification")
+                    self.handle_arxiv_classification(data['data'])
+                    return
+            print("Recieved a request but not for any endpoint, returning PING_REQUEST")
+            self.make_good_response(PING_REQUEST)
+        except:
+            self.make_good_response(BAD_REQUEST)
 
-        content_length = int(self.headers['Content-Length'])
-        post_data = self.rfile.read(content_length)
-        data = json.loads(post_data.decode('utf-8'))
-        
-        print("Recieved a request")
-
-        if 'resource' in data:
-            if data['resource'] == "arxivClassification" and 'data' in data:
-        
-                print("Requested for arxiv classification")
-        
-                self.handle_arxiv_classification(data['data'])
-                return
-
-        print("Recieved a request but not for any endpoint, returning PING_REQUEST")
-        self.make_good_response(PING_REQUEST)
-        
     def do_GET(self):
         self.make_good_response(PING_REQUEST)
 
