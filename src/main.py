@@ -108,8 +108,8 @@ if __name__ == "__main__":
     # handler = http.server.SimpleHTTPRequestHandler
     # httpd = socketserver.TCPServer(("", PORT), myHandler)
     start_up()
-    server = CustomHTTPServer(('localhost', 8080), myHandler)
-    print("Serving on port 8080...")
+    server = CustomHTTPServer(('0.0.0.0', PORT), myHandler)
+    print(f"Serving on port {PORT}")
     server.serve_forever()
 
     # print("serving at port", PORT)

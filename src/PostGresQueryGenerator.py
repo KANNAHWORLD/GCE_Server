@@ -167,7 +167,7 @@ class PGQuery:
         return '\'[' + ','.join(map(str, list)) + ']\''
 
     def toString(string: str):
-        return f"'{string.replace('\'', '')}'"
+        return "'{}'".format(string.replace("'", ''))
     
     def toInt(num: int):
         return str(num)

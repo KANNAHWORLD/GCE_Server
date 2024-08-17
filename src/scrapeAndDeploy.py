@@ -73,7 +73,7 @@ DATABASE_NAME = 'piazzapostdata'
 
 PG_LOGIN = {
     'dbname'    : 'postgres',
-    'user'      : 'sidbansal',
+    'user'      : 'kannah',
     'password'  : 'macbook',
     'host'      : 'localhost',
     'port'      : '5432',
@@ -83,11 +83,11 @@ PG_LOGIN = {
 # SEMESTERS = ["CSCI360-FALL2023"]
 # SEMESTER_IDS = [1]
 
-RUN_DATABASE_INTIALIZATION = False
+RUN_DATABASE_INTIALIZATION = True
 CREATE_NEW_TABLES = False or RUN_DATABASE_INTIALIZATION
 
-EMAIL = ''
-PASSWORD = ''
+EMAIL = 'bansalsi@usc.edu'
+PASSWORD = 'Kannahworld2003!P'
 
 def piazzaLogIn() -> Piazza:
     piazza_obj = Piazza()
@@ -105,6 +105,7 @@ if __name__ == "__main__":
 
     encoder = SentenceTransformer('bert-base-nli-mean-tokens')
     if RUN_DATABASE_INTIALIZATION:
+        print("Initializing db")
         SQL = PGQ()
         SQL.login(PG_LOGIN)
         SQL.toggleAutoCommit()
@@ -126,7 +127,7 @@ if __name__ == "__main__":
     SQL = PGQ()
     SQL.login(PG_LOGIN)
     SQL.toggleAutoCommit()
-    
+    print("Logging in")
     if RUN_DATABASE_INTIALIZATION:
         SQL.CREATE_EXTENSTION('vector').execute_nofetch()
         SQL.commit()
@@ -176,6 +177,7 @@ if __name__ == "__main__":
         SQL.CREATE_TABLE('Embeddings', EMBEDDINGS_COLUMN).execute_nofetch()
         
         SQL.commit()
+        print("Created new tables")
 
     '''
         1. Load data directly from Piazza
@@ -187,6 +189,7 @@ if __name__ == "__main__":
     piazza_obj = piazzaLogIn()
     classNidArr = get360Classes(piazza_obj) # Getting all of the nid's for 360
     for semester_nid, semester_class_name in classNidArr:
+        print("Grabbing piazza data now")
         # Loading the semester infromation into the database
         class_network = piazza_obj.network(semester_nid)
         SQL.INSERT_INTO(
