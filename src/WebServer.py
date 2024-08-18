@@ -124,7 +124,7 @@ class SidHubHttpServer(http.server.SimpleHTTPRequestHandler):
         db_response = piazza_db_connection.SELECT([
             "s.semester_name", 
             "s.semester_id",
-            "e.post_id", 
+            "p.post_id", 
             "p.post_title", 
             "p.post_content", 
             "p.instructor_answer", 
@@ -143,7 +143,7 @@ class SidHubHttpServer(http.server.SimpleHTTPRequestHandler):
             's.semester_id = e.semester_id'
         ).GROUP_BY([
             's.semester_id',
-            'e.post_id',
+            'p.post_id'
         ]).ORDER_BY([
             f'embedding <=> {PGQ.toVector(query_embedding)} DESC',
         ]).LIMIT(
