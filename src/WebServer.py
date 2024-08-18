@@ -263,7 +263,7 @@ def start_up():
     arxiv_classif_tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_NAME, force_download=False)
 
     # Pull from Cache if available, else download
-    piazza_db_tokenizer = SentenceTransformer('paraphrase-MiniLM-L6-v2')
+    piazza_db_tokenizer = SentenceTransformer('bert-base-nli-mean-tokens')
     piazza_db_tokenizer.eval()
     piazza_db_connection.login(POSTGRES_LOGIN)
 
