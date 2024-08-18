@@ -11,7 +11,8 @@ from typing import List, Dict
 # Custom class to generate and execute readable SQL queries 
 from PostGresQueryGenerator import PGQuery as PGQ
 
-''' ###### DB Design #######
+''' 
+###### DB Design #######
 "Embeddings" Table (
   id              SERIAL          PRIMARY KEY, 
   embedding       vector(768)     NOT NULL, 
@@ -79,15 +80,11 @@ PG_LOGIN = {
     'port'      : '5432',
 }
 
-# DATA_FILES = ['data/csci360_posts_lldjr37glc01sj.pkl']
-# SEMESTERS = ["CSCI360-FALL2023"]
-# SEMESTER_IDS = [1]
-
-RUN_DATABASE_INTIALIZATION = True
+RUN_DATABASE_INTIALIZATION = False
 CREATE_NEW_TABLES = False or RUN_DATABASE_INTIALIZATION
 
-EMAIL = 'bansalsi@usc.edu'
-PASSWORD = 'Kannahworld2003!P'
+EMAIL = ''
+PASSWORD = ''
 
 def piazzaLogIn() -> Piazza:
     piazza_obj = Piazza()
@@ -189,9 +186,23 @@ if __name__ == "__main__":
     piazza_obj = piazzaLogIn()
     classNidArr = get360Classes(piazza_obj) # Getting all of the nid's for 360
     for semester_nid, semester_class_name in classNidArr:
-        print("Grabbing piazza data now")
+        
+        # Checking if the semester already exists in the database
+        # Avoid overwriting if that is the case
+        exists = SQL.SELECT(
+                    ['*']
+                    ).FROM(
+                        ['Semesters']
+                    ).WHERE(
+                        [f'semester_piazza_code = {PGQ.toString(semester_nid)}']
+                    ).execute_fetch()
+    
+        if len(exists) == 0:
+            continue
+
         # Loading the semester infromation into the database
         class_network = piazza_obj.network(semester_nid)
+
         SQL.INSERT_INTO(
             'Semesters', 
             ('semester_name', 'semester_piazza_code')
@@ -201,7 +212,13 @@ if __name__ == "__main__":
         
         SQL.commit()
         # Getting Semester ID from the database
-        semester_id = SQL.SELECT(['semester_id']).FROM(['Semesters']).WHERE(f'semester_piazza_code = {PGQ.toString(semester_nid)}').execute_fetch()[0][0]    
+        semester_id = SQL.SELECT(
+            ['semester_id']
+            ).FROM(
+                ['Semesters']
+            ).WHERE(
+                [f'semester_piazza_code = {PGQ.toString(semester_nid)}']
+            ).execute_fetch()[0][0]    
         
         ######### Iterate through all of the posts in the semester and add them to the database #########
         minn = 5
@@ -290,6 +307,8 @@ if __name__ == "__main__":
                     myClass = piazza_obj.network(semester_nid)
             except:
                 print("Error with post: ", post_num)
+                time.sleep(60 * 10)
+                myClass = piazza_obj.network(semester_nid)
                 continue
 
         ############################################################

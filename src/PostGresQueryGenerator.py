@@ -98,8 +98,8 @@ class PGQuery:
         self.query.append(f"FROM {', '.join(table_names)}")
         return self
 
-    def WHERE(self, condition: str):
-        self.query.append(f"WHERE {condition}")
+    def WHERE(self, conditions: List[str]):
+        self.query.append(f"WHERE {', '.join(conditions)}")
         return self
 
     def AND(self, condition: str):
