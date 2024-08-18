@@ -104,7 +104,7 @@ class SidHubHttpServer(http.server.SimpleHTTPRequestHandler):
         print("Classification completed, responding back")
         self.make_good_response(data)
 
-    def handle_360_Piazza_Database(self, query: str) -> None:
+    def handle_360_Piazza_Database(query: str) -> None:
         """
         Handles the 360PiazzaDatabase request.
         Writes directly to http response upon completion.
@@ -232,8 +232,7 @@ if __name__ == "__main__":
     start_up()
 
     if TEST_FLAG:
-        server = SidHubHttpServer(request=None, client_address=None, server=None)
-        server.handle_360_Piazza_Database("What is the meaning of life?")
+        server = SidHubHttpServer.handle_360_Piazza_Database("What is the meaning of life?")
         exit(0)
 
     server = CustomHTTPServer((DEFAULT_IP, PORT), SidHubHttpServer)
