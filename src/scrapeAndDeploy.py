@@ -197,7 +197,8 @@ if __name__ == "__main__":
                         [f'semester_piazza_code = {PGQ.toString(semester_nid)}']
                     ).execute_fetch()
     
-        if len(exists) == 0:
+        if len(exists) != 0:
+            print("Semester data already acquired")
             continue
 
         # Loading the semester infromation into the database
