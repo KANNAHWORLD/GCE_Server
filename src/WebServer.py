@@ -123,7 +123,7 @@ class SidHubHttpServer(http.server.SimpleHTTPRequestHandler):
 
         db_response = piazza_db_connection.SELECT([
             "semester_name", 
-            "DISTINCT semester_id",
+            "semester_id",
             "post_id", 
             "post_title", 
             "post_content", 
@@ -141,7 +141,10 @@ class SidHubHttpServer(http.server.SimpleHTTPRequestHandler):
             'semesters'
         ).ON(
             'semesters.semester_id = embeddings.semester_id'
-        ).ORDER_BY([
+        ).GROUP_BY([
+            'semester_id',
+            'post_id',
+        ]).ORDER_BY([
             f'embedding <=> {PGQ.toVector(query_embedding)} DESC',
         ]).LIMIT(
             10
