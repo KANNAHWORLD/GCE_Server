@@ -142,8 +142,13 @@ class SidHubHttpServer(http.server.SimpleHTTPRequestHandler):
         ).ON(
             's.semester_id = e.semester_id'
         ).GROUP_BY([
+            's.semester_name',
             's.semester_id',
-            'p.post_id'
+            'p.post_id',
+            'p.post_title',
+            'p.post_content',
+            'p.instructor_answer',
+            'p.student_answer',
         ]).ORDER_BY([
             f'embedding <=> {PGQ.toVector(query_embedding)} DESC',
         ]).LIMIT(
