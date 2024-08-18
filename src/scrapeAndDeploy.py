@@ -83,6 +83,7 @@ PG_LOGIN = {
 RUN_DATABASE_INTIALIZATION = False
 CREATE_NEW_TABLES = False or RUN_DATABASE_INTIALIZATION
 
+# Login details for Piazza
 EMAIL = ''
 PASSWORD = ''
 
@@ -194,7 +195,7 @@ if __name__ == "__main__":
                     ).FROM(
                         ['Semesters']
                     ).WHERE(
-                        [f'semester_piazza_code = {PGQ.toString(semester_nid)}']
+                        f'semester_piazza_code = {PGQ.toString(semester_nid)}'
                     ).execute_fetch()
     
         if len(exists) != 0:
@@ -218,7 +219,7 @@ if __name__ == "__main__":
             ).FROM(
                 ['Semesters']
             ).WHERE(
-                [f'semester_piazza_code = {PGQ.toString(semester_nid)}']
+                f'semester_piazza_code = {PGQ.toString(semester_nid)}'
             ).execute_fetch()[0][0]    
         
         ######### Iterate through all of the posts in the semester and add them to the database #########
