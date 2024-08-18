@@ -122,25 +122,25 @@ class SidHubHttpServer(http.server.SimpleHTTPRequestHandler):
         query_embedding = piazza_db_tokenizer.encode(query)
 
         db_response = piazza_db_connection.SELECT([
-            "semester_name", 
-            "semester_id",
-            "post_id", 
-            "post_title", 
-            "post_content", 
-            "instructor_answer", 
-            "student_answer",
+            "s.semester_name", 
+            "s.semester_id",
+            "e.post_id", 
+            "p.post_title", 
+            "p.post_content", 
+            "p.instructor_answer", 
+            "p.student_answer",
         ]).FROM([
-            'embeddings'
+            'embeddings AS e'
         ]).LEFT_JOIN(
-            'posts'
+            'posts AS p'
         ).ON(
-            'posts.post_id = embeddings.post_id'
+            'p.post_id = e.post_id'
         ).AND(
-            'posts.semester_id = embeddings.semester_id'
+            'p.semester_id = e.semester_id'
         ).LEFT_JOIN(
-            'semesters'
+            'semesters AS s'
         ).ON(
-            'semesters.semester_id = embeddings.semester_id'
+            's.semester_id = e.semester_id'
         ).GROUP_BY([
             'semester_id',
             'post_id',
