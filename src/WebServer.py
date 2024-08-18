@@ -121,6 +121,40 @@ class SidHubHttpServer(http.server.SimpleHTTPRequestHandler):
         # Get the embeddings for the data
         query_embedding = piazza_db_tokenizer.encode(query)
 
+        x = piazza_db_connection.WITH(
+            "SimilarityEmbeddings AS"
+        ).P(
+        ).SELECT([
+            'post_id',
+            'semester_id',
+            f'embedding <=> {PGQ.toVector(query_embedding)} AS similarity'
+        ]).FROM([
+            'embeddings'
+        ]).ORDER_BY([
+            f'similarity DESC',
+        ]).EP(
+        ).SELECT([
+            "DISTINCT p.semester_id",
+            "p.post_id",
+            "p.post_title",
+            "p.post_content",
+            "p.instructor_answer",
+            "p.student_answer",
+        ]).FROM([
+            'SimilarityEmbeddings AS se'
+        ]).LEFT_JOIN(
+            'posts AS p'
+        ).ON(
+            'p.post_id = se.post_id'
+        ).AND(
+            'p.semester_id = se.semester_id'
+        ).LIMIT(
+            10
+        ).execute_fetch()
+
+        print(x)
+        return
+
         db_response = piazza_db_connection.SELECT([
             "s.semester_name", 
             "s.semester_id",
