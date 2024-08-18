@@ -3,7 +3,7 @@ import json
 import numpy as np
 import http.server
 import socketserver
-import PostGresQueryGenerator as PGQ
+from PostGresQueryGenerator import PGQuery as PGQ
 from sentence_transformers import SentenceTransformer
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
@@ -51,7 +51,7 @@ LABEL_DESCRIPTIONS = [
 ############## TOKENIZER AND SQL CONNECTION ##############
 ############## 360 PIAZZA DATABASE #######################
 piazza_db_tokenizer = None
-piazza_db_connection = PGQ.PGQuery()
+piazza_db_connection = PGQ()
 POSTGRES_LOGIN = {
     'port'      : '5432',
     'user'      : 'kannah',
