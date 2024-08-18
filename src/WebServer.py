@@ -9,7 +9,7 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 ########## SERVING CONFIGURATIONS ##########
 PORT = 8000
-DEFUALT_IP = '0.0.0.0'
+DEFAULT_IP = '0.0.0.0'
 
 
 ########## DEFAULT RESPONSES ##########
@@ -232,10 +232,10 @@ if __name__ == "__main__":
     start_up()
 
     if TEST_FLAG:
-        server = SidHubHttpServer()
+        server = SidHubHttpServer(request=None, client_address=None, server=None)
         server.handle_360_Piazza_Database("What is the meaning of life?")
         exit(0)
 
-    server = CustomHTTPServer((DEFUALT_IP, PORT), SidHubHttpServer)
+    server = CustomHTTPServer((DEFAULT_IP, PORT), SidHubHttpServer)
     print(f"Serving on port {PORT}")
     server.serve_forever()
