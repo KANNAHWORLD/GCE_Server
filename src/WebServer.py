@@ -2,13 +2,16 @@ import os
 import json
 import numpy as np
 import http.server
+import requests
+import threading
 import socketserver
+from collections import defaultdict
 from PostGresQueryGenerator import PGQuery as PGQ
 from sentence_transformers import SentenceTransformer
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 ########## SERVING CONFIGURATIONS ##########
-PORT = 8000
+PORT = 7458
 DEFAULT_IP = '0.0.0.0'
 
 
@@ -51,7 +54,6 @@ LABEL_DESCRIPTIONS = [
 ############## TOKENIZER AND SQL CONNECTION ##############
 ############## 360 PIAZZA DATABASE #######################
 piazza_db_tokenizer = None
-piazza_db_connection = PGQ()
 POSTGRES_LOGIN = {
     'port'      : '5432',
     'user'      : 'kannah',
@@ -78,7 +80,7 @@ class SidHubHttpServer(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(json.dumps(data).encode('utf-8'))
 
-    def handle_arxiv_classification(self, data: str) -> None:
+    def handle_arxiv_classification(data: str) -> dict:
         """
         Handles the classification of arXiv data.
         Writes directly to http response upon completion.
@@ -100,38 +102,34 @@ class SidHubHttpServer(http.server.SimpleHTTPRequestHandler):
         prediction = np.argmax(outputs.logits.detach().numpy())
         
         # Defining the data to be returned
-        data = {"message": LABEL_DESCRIPTIONS[prediction]}
-        print("Classification completed, responding back")
-        self.make_good_response(data)
+        response_json = {"message": LABEL_DESCRIPTIONS[prediction]}
+        return response_json
 
-    def handle_360_Piazza_Database(query: str) -> None:
+    def handle_360_Piazza_Database(query: str) -> dict:
         """
         Handles the 360PiazzaDatabase request.
-        Writes directly to http response upon completion.
         Args:
             data: The input data to be processed.
         Returns:
-            None
+            List of dictionaries of piazza posts
         Raises:
             None
         """
         global piazza_db_tokenizer
-        global piazza_db_connection
-        
+        piazza_db_connection = PGQ()
+        piazza_db_connection.login(POSTGRES_LOGIN)
         # Get the embeddings for the data
+    
         query_embedding = piazza_db_tokenizer.encode(query)
-
-        x = piazza_db_connection.WITH(
+        database_response = piazza_db_connection.WITH(
             "SimilarityEmbeddings AS"
         ).P(
         ).SELECT([
             'post_id',
             'semester_id',
-            f'embedding <=> {PGQ.toVector(query_embedding)} AS similarity'
+            f'1 - (embedding <=> {PGQ.toVector(query_embedding)}) AS similarity'
         ]).FROM([
             'embeddings'
-        ]).ORDER_BY([
-            f'similarity DESC',
         ]).EP(
         ).SELECT([
             "DISTINCT p.semester_id",
@@ -140,6 +138,7 @@ class SidHubHttpServer(http.server.SimpleHTTPRequestHandler):
             "p.post_content",
             "p.instructor_answer",
             "p.student_answer",
+            "se.similarity",
         ]).FROM([
             'SimilarityEmbeddings AS se'
         ]).LEFT_JOIN(
@@ -148,55 +147,25 @@ class SidHubHttpServer(http.server.SimpleHTTPRequestHandler):
             'p.post_id = se.post_id'
         ).AND(
             'p.semester_id = se.semester_id'
-        ).LIMIT(
-            10
-        ).execute_fetch()
-
-        print(x)
-        return
-
-        db_response = piazza_db_connection.SELECT([
-            "s.semester_name", 
-            "s.semester_id",
-            "p.post_id", 
-            "p.post_title", 
-            "p.post_content", 
-            "p.instructor_answer", 
-            "p.student_answer",
-        ]).FROM([
-            'embeddings AS e'
-        ]).LEFT_JOIN(
-            'posts AS p'
-        ).ON(
-            'p.post_id = e.post_id'
-        ).AND(
-            'p.semester_id = e.semester_id'
-        ).LEFT_JOIN(
-            'semesters AS s'
-        ).ON(
-            's.semester_id = e.semester_id'
-        ).GROUP_BY([
-            's.semester_name',
-            's.semester_id',
-            'p.post_id',
-            'p.post_title',
-            'p.post_content',
-            'p.instructor_answer',
-            'p.student_answer',
-        ]).ORDER_BY([
-            f'embedding <=> {PGQ.toVector(query_embedding)} DESC',
+        ).ORDER_BY([
+            'se.similarity DESC'
         ]).LIMIT(
             10
         ).execute_fetch()
-
-        print(db_response)
-        return
-
-        # Defining the data to be returned
-        data = {"message": "360PiazzaDatabase"}
-        print("360PiazzaDatabase completed, responding back")
-        self.make_good_response(data)
-
+        response_json = list()
+        for row in database_response:
+            response_json.append({
+                'semester_id'       : row[0],
+                'post_id'           : row[1],
+                'post_title'        : row[2],
+                'post_content'      : row[3],
+                'instructor_answer' : row[4],
+                'student_answer'    : row[5],
+                'similarity'        : row[6]
+        })
+        
+        return {'response' : response_json}
+    
     def do_POST(self):
         try:
             content_length = int(self.headers['Content-Length'])
@@ -206,15 +175,20 @@ class SidHubHttpServer(http.server.SimpleHTTPRequestHandler):
             if 'resource' in data:
                 if data['resource'] == "arxivClassification" and 'data' in data:
                     print("Requested for arxiv classification")
-                    self.handle_arxiv_classification(data['data'])
+                    output_json = SidHubHttpServer.handle_arxiv_classification(data['data'])
+                    self.make_good_response(output_json)
                     return
+                
                 elif data['resource'] == '360PiazzaDatabase' and 'data' in data:
                     print("Requested for 360PiazzaDatabase")
-                    # self.handle_360PiazzaDatabase(data)
+                    output_json = SidHubHttpServer.handle_360_Piazza_Database(data['data'])
+                    self.make_good_response(output_json)
                     return
+                
             print("Recieved a request but not for implemented endpoint, returning PING_REQUEST")
             self.make_good_response(PING_REQUEST)
-        except:
+        except Exception as e:
+            print(e)
             self.make_good_response(BAD_REQUEST)
 
     def do_GET(self):
@@ -233,14 +207,14 @@ class SidHubHttpServer(http.server.SimpleHTTPRequestHandler):
     def do_CONNECT(self):
         """
         Handles the CONNECT method.
-        This method sends a 405 response with a message indicating that the CONNECT method is not allowed.
+        This method sends a 502 response with a message indicating that the CONNECT method is not allowed.
         Parameters:
             self (WebServer): The instance of the WebServer class.
         Returns:
             None
         """
 
-        self.send_response(405)
+        self.send_response(502)
         self.send_header("Content-Type", "text/html")
         self.end_headers()
         self.wfile.write(b"CONNECT method is not allowed.")
@@ -265,7 +239,6 @@ def start_up():
     # Pull from Cache if available, else download
     piazza_db_tokenizer = SentenceTransformer('bert-base-nli-mean-tokens')
     piazza_db_tokenizer.eval()
-    piazza_db_connection.login(POSTGRES_LOGIN)
 
 TEST_FLAG = True
 
@@ -274,7 +247,32 @@ if __name__ == "__main__":
     start_up()
 
     if TEST_FLAG:
-        server = SidHubHttpServer.handle_360_Piazza_Database("What is the meaning of life?")
+        print("Testing Arxiv Classification")
+        pred_string = "Neural Networks are a part of machine learning and AI"
+        ArxivTest = SidHubHttpServer.handle_arxiv_classification("pred_string")
+        print(f"Prediction for {pred_string} is {ArxivTest}")
+
+        print("Testing 360 Piazza Database")
+        pred_string = "Gradient Descent"
+        PiazzaDatabaseTest = SidHubHttpServer.handle_360_Piazza_Database(pred_string)
+        print(f"First Row of Database response for {pred_string} is: {PiazzaDatabaseTest['response'][0]}")
+
+        print("Testing WebServer")
+        server = CustomHTTPServer(('localhost', PORT), SidHubHttpServer)
+        thread = threading.Thread(target=server.serve_forever)
+        thread.start()
+
+        print("Testing arxiv Endpoint")
+        response = requests.post(f"http://localhost:{PORT}", json={"resource": "arxivClassification", "data": "Neural Networks are a part of machine learning and AI"}, timeout=120)
+        response_json = response.json()
+        print(response_json)
+
+        print("Testing piazza db endpoint")
+        response = requests.post(f"http://localhost:{PORT}", json={"resource": "360PiazzaDatabase", "data": "Gradient Descent"}, timeout=1200000)
+        response_json = response.json()
+        print(response_json['response'][0])
+        
+        server.shutdown()
         exit(0)
 
     server = CustomHTTPServer((DEFAULT_IP, PORT), SidHubHttpServer)
