@@ -11,7 +11,7 @@ from sentence_transformers import SentenceTransformer
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 ########## SERVING CONFIGURATIONS ##########
-PORT = 7458
+PORT = 8000
 DEFAULT_IP = '0.0.0.0'
 
 
@@ -240,7 +240,7 @@ def start_up():
     piazza_db_tokenizer = SentenceTransformer('bert-base-nli-mean-tokens')
     piazza_db_tokenizer.eval()
 
-TEST_FLAG = True
+TEST_FLAG = False
 
 if __name__ == "__main__":
 
