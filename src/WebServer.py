@@ -61,6 +61,12 @@ POSTGRES_LOGIN = {
     'host'      : 'localhost',
     'dbname'    : 'piazzapostdata',
 }
+################# SEMESTERID TRANSLATIONS #################
+SEMESTERID_TRANSLATIONS = {
+    1: "Fall 2023",
+    3: "Spring 2023",
+    4: "Spring 2024",
+}
 
 ########## CUSTOM HANDLER ##########
 class SidHubHttpServer(http.server.SimpleHTTPRequestHandler):
@@ -158,7 +164,7 @@ class SidHubHttpServer(http.server.SimpleHTTPRequestHandler):
         response_json = list()
         for row in database_response:
             response_json.append({
-                'semester_id'       : row[0],
+                'semester_id'       : SEMESTERID_TRANSLATIONS[row[0]],
                 'post_id'           : row[1],
                 'post_title'        : row[2],
                 'post_content'      : row[3],
