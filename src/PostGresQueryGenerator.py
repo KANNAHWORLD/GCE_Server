@@ -62,14 +62,9 @@ class PGQuery:
         self.query.append(f"SELECT {', '.join(columns)}")
         return self
     
-
     def WITH(self, table):
         self.query.append(f"WITH {table}")
         return self
-
-    # def SELECT_DISTINCT(self, columns: List[str]):
-    #     self.query.append(f"SELECT DISTINCT {', '.join(columns)}")
-    #     return self
 
     def LEFT_JOIN(self, table_name: str):
         self.query.append(f"LEFT JOIN {table_name}")

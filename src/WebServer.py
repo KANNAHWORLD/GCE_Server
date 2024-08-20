@@ -119,6 +119,7 @@ class SidHubHttpServer(http.server.SimpleHTTPRequestHandler):
         piazza_db_connection = PGQ()
         piazza_db_connection.login(POSTGRES_LOGIN)
         # Get the embeddings for the data
+        COSINE_SIMILARITY_THRESHOLD = 0.749999
     
         query_embedding = piazza_db_tokenizer.encode(query)
         database_response = piazza_db_connection.WITH(
@@ -147,6 +148,8 @@ class SidHubHttpServer(http.server.SimpleHTTPRequestHandler):
             'p.post_id = se.post_id'
         ).AND(
             'p.semester_id = se.semester_id'
+        ).WHERE(
+            f'se.similarity > {COSINE_SIMILARITY_THRESHOLD}'
         ).ORDER_BY([
             'se.similarity DESC'
         ]).LIMIT(
